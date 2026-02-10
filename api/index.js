@@ -6,12 +6,12 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 
-// ── Security & Middleware ────────────────────────────────────────────
+
 app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-// Rate limiting – 100 requests per minute per IP
+
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -25,15 +25,13 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// ── Constants ────────────────────────────────────────────────────────
+
 const OFFICIAL_EMAIL = "lavish2052.be23@chitkara.edu.in";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyBogpu9Z5yYPYJjFmUMa8JmgOT6bFycc2A";
 
-// ── Helper Functions ─────────────────────────────────────────────────
 
-/**
- * Build a success response object.
- */
+
+
 function successResponse(data) {
   return {
     is_success: true,
@@ -42,9 +40,7 @@ function successResponse(data) {
   };
 }
 
-/**
- * Build an error response object.
- */
+
 function errorResponse(message) {
   return {
     is_success: false,
@@ -53,10 +49,7 @@ function errorResponse(message) {
   };
 }
 
-/**
- * Generate Fibonacci series of length n.
- * n must be a positive integer.
- */
+
 function fibonacci(n) {
   if (n <= 0) return [];
   if (n === 1) return [0];
@@ -67,9 +60,7 @@ function fibonacci(n) {
   return series;
 }
 
-/**
- * Check if a number is prime.
- */
+
 function isPrime(num) {
   if (num < 2) return false;
   if (num === 2) return true;
@@ -80,16 +71,12 @@ function isPrime(num) {
   return true;
 }
 
-/**
- * Filter prime numbers from an array.
- */
+
 function filterPrimes(arr) {
   return arr.filter(isPrime);
 }
 
-/**
- * Compute GCD of two numbers.
- */
+
 function gcd(a, b) {
   a = Math.abs(a);
   b = Math.abs(b);
@@ -99,32 +86,23 @@ function gcd(a, b) {
   return a;
 }
 
-/**
- * Compute LCM of two numbers.
- */
+
 function lcm(a, b) {
   if (a === 0 || b === 0) return 0;
   return Math.abs(a * b) / gcd(a, b);
 }
 
-/**
- * Compute LCM of an array of integers.
- */
+
 function lcmArray(arr) {
   return arr.reduce((acc, val) => lcm(acc, val), 1);
 }
 
-/**
- * Compute HCF (GCD) of an array of integers.
- */
+
 function hcfArray(arr) {
   return arr.reduce((acc, val) => gcd(acc, val));
 }
 
-/**
- * Call Google Gemini for a single-word answer.
- * Tries multiple models as fallback in case of quota issues.
- */
+
 async function askAI(question) {
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
@@ -148,7 +126,6 @@ async function askAI(question) {
   throw lastError || new Error("All AI models failed.");
 }
 
-// ── Validation Helpers ───────────────────────────────────────────────
 
 function isValidInteger(val) {
   return Number.isInteger(val);
@@ -162,11 +139,9 @@ function isNonEmptyString(val) {
   return typeof val === "string" && val.trim().length > 0;
 }
 
-// ── ROUTES ───────────────────────────────────────────────────────────
 
-/**
- * GET /health — Health check
- */
+
+
 app.get("/health", (_req, res) => {
   return res.status(200).json({
     is_success: true,
@@ -174,9 +149,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-/**
- * GET /bfhl — Also respond on root for convenience
- */
+
 app.get("/bfhl", (_req, res) => {
   return res.status(200).json({
     is_success: true,
@@ -184,19 +157,17 @@ app.get("/bfhl", (_req, res) => {
   });
 });
 
-/**
- * POST /bfhl — Main logic endpoint
- */
+
 app.post("/bfhl", async (req, res) => {
   try {
     const body = req.body;
 
-    // Guard: body must be a non-null object
+    
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return res.status(400).json(errorResponse("Request body must be a valid JSON object."));
     }
 
-    // Determine which key is present
+   
     const validKeys = ["fibonacci", "prime", "lcm", "hcf", "AI"];
     const presentKeys = validKeys.filter((k) => body.hasOwnProperty(k));
 
@@ -215,7 +186,7 @@ app.post("/bfhl", async (req, res) => {
     const key = presentKeys[0];
     const value = body[key];
 
-    // ── fibonacci ──────────────────────────────────────────────
+    
     if (key === "fibonacci") {
       if (!isValidInteger(value) || value < 0) {
         return res
@@ -225,7 +196,7 @@ app.post("/bfhl", async (req, res) => {
       return res.status(200).json(successResponse(fibonacci(value)));
     }
 
-    // ── prime ──────────────────────────────────────────────────
+    
     if (key === "prime") {
       if (!isValidIntegerArray(value)) {
         return res
@@ -235,7 +206,7 @@ app.post("/bfhl", async (req, res) => {
       return res.status(200).json(successResponse(filterPrimes(value)));
     }
 
-    // ── lcm ────────────────────────────────────────────────────
+  
     if (key === "lcm") {
       if (!isValidIntegerArray(value)) {
         return res
@@ -245,7 +216,7 @@ app.post("/bfhl", async (req, res) => {
       return res.status(200).json(successResponse(lcmArray(value)));
     }
 
-    // ── hcf ────────────────────────────────────────────────────
+    
     if (key === "hcf") {
       if (!isValidIntegerArray(value)) {
         return res
@@ -255,7 +226,7 @@ app.post("/bfhl", async (req, res) => {
       return res.status(200).json(successResponse(hcfArray(value)));
     }
 
-    // ── AI ─────────────────────────────────────────────────────
+    
     if (key === "AI") {
       if (!isNonEmptyString(value)) {
         return res
@@ -276,12 +247,12 @@ app.post("/bfhl", async (req, res) => {
   }
 });
 
-// ── Catch-all for undefined routes ───────────────────────────────────
+
 app.use((_req, res) => {
   return res.status(404).json(errorResponse("Route not found."));
 });
 
-// ── Start server (local dev) ─────────────────────────────────────────
+
 const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
