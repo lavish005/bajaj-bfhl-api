@@ -142,6 +142,13 @@ function isNonEmptyString(val) {
 
 
 
+app.get("/", (_req, res) => {
+  return res.status(200).json({
+    is_success: true,
+    official_email: OFFICIAL_EMAIL,
+  });
+});
+
 app.get("/health", (_req, res) => {
   return res.status(200).json({
     is_success: true,
